@@ -3,22 +3,23 @@ var bools = [true, false]
 function buildSystem(){
 	system.name = systemName;
 	system.binary = Math.floor(Math.random()*bools.length);
-	
+	system.suns = [];
+
 	if(system.binary){
-		system.suns = [];
 		system.suns[0]= {};
 		var radius1 = 1000+Math.random()*2000;
 		system.suns[0].object = buildBinarySun(radius1);
 		system.suns[0].offset = 500 + (Math.random()*(radius1*2));
-		var radius2 = (radius1) -  Math.random()*(radius1);
+		var radius2 = (radius1) -  Math.random()*(radius1/3);
 		system.suns[1]= {};
 		system.suns[1].object = buildBinarySun(radius2);
-		system.suns[1].offset = (system.suns[0].offset+(radius2+Math.random()*radius2));
-		sRad = system.suns[1].offset*2;
+		system.suns[1].offset = -(system.suns[0].offset+(radius2+Math.random()*radius2));
+		sRad = -(system.suns[1].offset)*2;
 	}else{
-		system.sun = {};
-		system.sun.radius = sRad = 1000+Math.random()*2000;
-		system.sun.object = buildSun(sRad);
+		system.suns[0] = {};
+		system.suns[0].radius = sRad = 1000+Math.random()*2000;
+		system.suns[0].object = buildSun(sRad);
+	    system.suns[0].offset = 0;
 		sRad = sRad*2 + Math.random()*sRad;
 	}
 	
@@ -49,7 +50,6 @@ function buildSystem(){
 		system.planets[p].planet.rotation = (pRad*2.5)/100;
 		system.planets[p].planet.object = buildPlanet(pRad, pDis);
 		system.planets[p].planet.spin = {x:Math.floor(Math.random()*10)/1000,y:Math.floor(Math.random()*10)/1000,z:Math.floor(Math.random()*10)/1000};
-		//system.planets[p].planet.sunLight = getSunLightSource((pDis-pRad)-sRad,(pDis+pRad+2000)-sRad,pRad+100);
 		system.planets[p].planet.moons = [];
 		
 		var numMoons = Math.floor(Math.random()*5);
@@ -105,28 +105,12 @@ function buildPath(planet, moon){
 	return line;
 }
 
-function getSunLightSource(near, far, off){
-    var light = new THREE.DirectionalLight(0xFFFFFF,1.5);
-	light.castShadow = true;
-	light.onlyShadow = false;
-	light.shadowCameraVisible = debug;
-	light.shadowCameraFov = 75;
-	light.shadowDarkness = .5;
-	light.shadowCameraNear = near;
-	light.shadowCameraFar = far;
-	light.shadowCameraLeft = -off;
-	light.shadowCameraRight = off;
-	light.shadowCameraTop = off;
-	light.shadowCameraBottom = -off;
-	scene.add(light);
-	return light;
-}
 //http://www.clicktorelease.com/blog/vertex-displacement-noise-3d-webgl-glsl-three-js
 var materials = [];
 function buildSun(radius){
 	var material = new THREE.ShaderMaterial( {
 		uniforms: { 
-			time: { // float initialized to 0
+			time: {
 				type: "f", 
 				value: 0.0 
 			},
@@ -175,6 +159,7 @@ function buildBinarySun(radius){
 	return sun;
 }
 
+var planetMats = [];
 function buildPlanet(radius,dist){
 	var pGeo = new THREE.SphereGeometry(radius,100,100);
 	var planetColor = rgbToHex(Math.floor(Math.random()*300), Math.floor(Math.random()*300), Math.floor(Math.random()*300));
@@ -194,10 +179,14 @@ function buildPlanet(radius,dist){
 	scene.add(line);
 	
 	var material = new THREE.ShaderMaterial( {
+			uniforms: { 
+				lVecs : { type: "v3v", value: [] }
+			},
 		   vertexShader: document.getElementById('vertexShader_planet').textContent,
 		   fragmentShader: document.getElementById('fragmentShader_planet').textContent
 	});
-	var planet = new THREE.Mesh(pGeo, material);//new THREE.MeshLambertMaterial({color: planetColor,ambient:planetColor, side: THREE.FrontSide})); 
+	planetMats.push(material);
+	var planet = new THREE.Mesh(pGeo, material);
 	var angle = Math.random()*Math.PI*2;
 	planet.position.x = Math.sin(angle)* dist;
 	planet.position.y = Math.cos(angle)* dist;
@@ -391,10 +380,16 @@ function displayName(){
 	text2.innerHTML = systemName;
 	document.body.appendChild(text2);
 }
+
 var start = Date.now();
 function updateSystem(){
 	for(var mat in materials){
 		materials[mat].uniforms[ 'time' ].value = .000025 * ( Date.now() - start );
+	}
+	
+	if(follow){
+		camera.position.x = lookAtObject.x;
+		camera.position.y = lookAtObject.y;
 	}
 	rotation+=incr;
 	system.starfields[0].rotation.z += .00005 
@@ -408,23 +403,20 @@ function updateSystem(){
 		system.asteroids[a].object.rotation.z -= (system.asteroids[a].rotation/2);
 	}
 	
-	if(system.binary){
-		for(var s in system.suns){
-			system.suns[0].object.position.x = (Math.sin(rotation/10 * (Math.PI/360)) * system.suns[0].offset);
-			system.suns[0].object.position.y = (Math.cos(rotation/10 * (Math.PI/360)) * system.suns[0].offset);
-			system.suns[1].object.position.x = -(Math.sin(rotation/10 * (Math.PI/360)) * system.suns[1].offset);
-			system.suns[1].object.position.y = -(Math.cos(rotation/10 * (Math.PI/360)) * system.suns[1].offset);
-		}
+	for(var s in system.suns){
+			system.suns[s].object.position.x = (Math.sin(rotation/33 * (Math.PI/360)) * system.suns[s].offset);
+			system.suns[s].object.position.y = (Math.cos(rotation/33 * (Math.PI/360)) * system.suns[s].offset);
 	}
+	
 	for(var p in system.planets){
 		var planet = system.planets[p].planet;
-		
-		if(system.binary){
-
-		}else{
+		var sunLights = [];
+		for(var s in system.suns){
+			var pl = planet.object.position.clone();
+			var sl = system.suns[s].object.position.clone();
+			sunLights.push(new THREE.Vector3(-(pl.x-sl.x),-(pl.y-sl.y),0));
 		}
-		//planet.object.lookAt(new THREE.Vector3(0,0,0))
-		//planet.object.rotation.z += planet.spin.z;		
+		planetMats[p].uniforms['lVecs'].value = sunLights;
 		planet.object.position.x = (Math.sin(rotation/planet.rotation * (Math.PI /360)) * planet.distance);
 		planet.object.position.y = (Math.cos(rotation/planet.rotation * (Math.PI / 360)) * planet.distance);
 		for(var m in planet.moons){

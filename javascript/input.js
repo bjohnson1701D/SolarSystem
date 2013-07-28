@@ -1,4 +1,4 @@
-var mouseDown = false,midlookx,midlooky;
+var mouseDown = false,midlookx,midlooky,follow=false;
 
 function bindKeys(){
 	document.addEventListener('mousemove', onDocumentMouseMove, false);
@@ -18,6 +18,7 @@ function onDocumentMouseMove(event){
 	var dx = event.clientX - midlookx;
 	var dy = event.clientY - midlooky;
 	if(mouseDown){
+		follow=false;
 		//TODO: Cant go too far!
 		camera.position.x -= dx*3;
 		camera.position.y += dy*3;
@@ -39,6 +40,7 @@ function onDocumentMouseUp(event){
 	var intersects = ray.intersectObjects(scene.children);
 	if(intersects.length > 0){
 		intersector = getRealIntersector(intersects);
+		follow=true;
 		lookAtObject = intersector.object.position;
 	}
 	

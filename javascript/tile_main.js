@@ -72,11 +72,6 @@ function animate(){
 
 function render(){
     system.update();
-
-//TODO: move to input.js on a click function	
-// camera.position.x = lookAtObject.x;
-// 	camera.position.y = lookAtObject.y;
-	
 	ray = projector.pickingRay(mouse2D.clone(), camera);
 	renderer.render(scene, camera);
 }

@@ -14,48 +14,32 @@
 	<script src="javascript/systemNameGenerator.js"></script>
 	
 		<script type="x-shader/x-vertex" id="vertexShader_planet">
-			// create a shared variable for the
-			// VS and FS containing the normal
 			varying vec3 vNormal;
-
 			void main() {
-
-			  // set the vNormal value with
-			  // the attribute value passed
-			  // in by Three.js
 			  vNormal = normal;
-
+			  
 			  gl_Position = projectionMatrix *
 							modelViewMatrix *
 							vec4(position, 1.0);
 			}
 		</script>
 		<script type="x-shader/x-vertex" id="fragmentShader_planet">
-			// same name and type as VS
-			varying vec3 vNormal;
-
+			varying vec3 vNormal; // same name and type as VS
+			uniform vec3 lVecs[2];
 			void main() {
-
-			  // calc the dot product and clamp
-			  // 0 -> 1 rather than -1 -> 1
-			  vec3 light = vec3(.0,-0.7,.3);
-
-			  // ensure it's normalized
-			  light = normalize(light);
-
-			  // calculate the dot product of
-			  // the light to the vertex normal
-			  float dProd = max(0.0,
-								dot(vNormal, light));
-
-			  // feed into our frag colour
+			  float dProd = 0.0;//max(0.0,dot(vNormal, light));
+			  for(int i = 0; i<2; i++){
+				vec3 light = normalize(lVecs[i]);
+				dProd += max(0.01,dot(vNormal, light));
+			  }
 			  gl_FragColor = vec4(dProd, // R
-								  dProd+.05, // G
+								  dProd, // G
 								  dProd, // B
 								  1);  // A
 
 			}
 		</script>
+		
 	<script type="x-shader/x-vertex" id="vertexShader">
 	vec3 mod289(vec3 x)
 	{
@@ -168,7 +152,6 @@
  
 	void main() {
 		vUv = uv;
-		// add time to the noise parameters so it's animated
 		noise = 10.0 *  -.10 * turbulence( .5 * normal + time );
 		float b = 25.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 100.0 ) );
 		float displacement = - noise + b;
