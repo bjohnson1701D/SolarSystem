@@ -51,9 +51,9 @@ function onDocumentMouseUp(event){
 function onMouseScrollButton(event){
 event.preventDefault();
 	if(event.wheelDelta<0&&camera.position.z<=zoommax)
-		camera.position.z += 333;
+		camera.position.z += 777;
 	else if(event.wheelDelta>0&&camera.position.z>=zoommin)
-		camera.position.z -= 333;
+		camera.position.z -= 777;
 }
 
 function onDocumentKeyDown(event){

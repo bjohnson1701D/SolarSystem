@@ -1,12 +1,10 @@
 var spotLight, selectedType;
 var container;
-var zoommax = 50000, zoommin= 1000, tileamount =33, tilesize = 16, tilegap = 5, tileheight = 16, zlook=-2000;
-var half=(tileamount*(tilesize+tilegap))/2;
+var zoommax = 333333, zoommin= 3000, zlook=-2000;
 var midx, midy, midlookx, midlooky;
 var camera, scene, renderer, midbtn=false, ctrl=false;
 var projector, plane, cube;
 var mouse2D, ray, isMouseDown = false, isMouseDownAndMoving = false, adjmats;
-var rollOverMesh, rollOverMaterial, lookat = new THREE.Vector3(half,half,zlook);
 var cubeGeo, cubeMats;
 var i, intersector, plane;
 var textures = {}, va = [.5,1,1.5,2], lifeForms = new Array(), objects={}, sprite,group,  objGroup, materials = [];
@@ -27,7 +25,6 @@ function init() {
 	document.body.appendChild(container);
 
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight,.1,zoommax*5);
-	//camera = new THREE.OrthographicCamera( -window.innerWidth*10, window.innerWidth*10, -window.innerHeight*10, window.innerHeight*10, .1, zoommax*5 );
 
 	camera.position.z = zoommax/2;				
 
@@ -39,9 +36,6 @@ function init() {
 	mouse2D = new THREE.Vector3(0, 10000, 0.5);
 	
 	renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: false});
-	//renderer.shadowMapEnabled = true;
-    //renderer.shadowMapSoft = false;
-    //renderer.shadowMapCullFrontFaces = true;
     renderer.setClearColor(0x000000, 1);
 	renderer.setSize(window.innerWidth, window.innerHeight);
 
